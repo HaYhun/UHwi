@@ -72,14 +72,16 @@ function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
 function renderQuestion(){let item=quizItems[quizIndex];answered=false;$('quizCount').textContent=`${quizIndex+1} / ${quizItems.length}`;$('quizBar').style.width=(quizIndex/quizItems.length*100)+'%';$('qhint').textContent=quizMode==='enko'?'다음 단어의 뜻을 고르세요.':'다음 뜻에 해당하는 영어 단어를 직접 입력하세요.';$('question').textContent=quizMode==='enko'?item.en:item.ko;
  if(quizMode==='koen'){
   $('options').innerHTML=`<div class="typed-wrap"><input id="typedAnswer" class="typed-input" type="text" placeholder="영어 단어를 입력하세요" autocomplete="off" autocapitalize="none" spellcheck="false"><button class="typed-submit" id="checkTyped" onclick="checkTypedAnswer()">정답 확인</button></div>`;
-  $('typedAnswer').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(answered)nextQuestion();else checkTypedAnswer()}});
-  setTimeout(()=>$('typedAnswer')?.focus(),50);
+  const typed=$('typedAnswer');
+  typed.readOnly=false;typed.disabled=false;typed.removeAttribute('readonly');typed.removeAttribute('disabled');typed.value='';
+  typed.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(answered)nextQuestion();else checkTypedAnswer()}});
+  setTimeout(()=>{const current=$('typedAnswer');if(current&&!current.disabled&&!current.readOnly)current.focus({preventScroll:true})},50);
  }else{
   let opts=[item,...shuffle(quizItems.filter(x=>x.en!==item.en)).slice(0,3)];opts=shuffle(opts);$('options').innerHTML=opts.map(o=>`<button class="option" data-answer="${encodeURIComponent(o.en)}" onclick="selectAnswer(this,'${encodeURIComponent(item.en)}')">${o.ko}</button>`).join('');
  }
  $('feedback').textContent='';$('feedback').className='feedback';$('nextQ').disabled=true;$('nextQ').textContent=quizIndex===quizItems.length-1?'결과 보기':'다음 문제 →';$('scoreLive').textContent=`정답 ${score}개`}
 function gradeAnswer(chosen,right){if(answered)return;answered=true;let isCorrect=chosen.trim().toLowerCase()===right.trim().toLowerCase();if(quizMode==='koen')quizReview.push({item:quizItems[quizIndex],typed:chosen,correct:isCorrect});if(isCorrect){score++;$('feedback').textContent='정답입니다!';$('feedback').classList.add('ok')}else{$('feedback').textContent=`아쉬워요. 정답은 ${right}입니다.`;$('feedback').classList.add('no')}$('scoreLive').textContent=`정답 ${score}개`;$('nextQ').disabled=false;return isCorrect}
-function checkTypedAnswer(){if(answered)return;let input=$('typedAnswer');let chosen=input.value.trim();if(!chosen){$('feedback').textContent='영어 단어를 입력해 주세요.';return}gradeAnswer(chosen,quizItems[quizIndex].en);input.readOnly=true;$('checkTyped').disabled=true}
+function checkTypedAnswer(){if(answered)return;let input=$('typedAnswer');let chosen=input.value.trim();if(!chosen){$('feedback').textContent='영어 단어를 입력해 주세요.';return}gradeAnswer(chosen,quizItems[quizIndex].en);input.readOnly=true;input.setAttribute('readonly','');$('checkTyped').disabled=true}
 function selectAnswer(btn,correct){if(answered)return;let chosen=decodeURIComponent(btn.dataset.answer),right=decodeURIComponent(correct);document.querySelectorAll('.option').forEach(b=>{b.disabled=true;let v=decodeURIComponent(b.dataset.answer);if(v===right)b.classList.add('correct')});gradeAnswer(chosen,right);if(chosen!==right)btn.classList.add('wrong')}
 function nextQuestion(){if(!answered)return;if(++quizIndex<quizItems.length)renderQuestion();else finishQuiz()}
 function finishQuiz(){show('result');let pct=Math.round(score/quizItems.length*100);$('scoreFinal').textContent=`${score} / ${quizItems.length}`;$('resultText').textContent=`정답률 ${pct}% · ${pct>=90?'훌륭해요!':pct>=70?'좋은 결과예요. 조금만 더 복습해 보세요.':'틀린 단어를 다시 암기해 보세요.'}`;const wrong=quizReview.filter(x=>!x.correct);$('quizReview').innerHTML=quizMode==='koen'?(wrong.length?`<h3>오답 목록 · ${wrong.length}개</h3>`+wrong.map((x,i)=>`<div class="mock-review-item"><strong>${i+1}. ${escapeHTML(x.item.ko)}</strong><br>내 답: ${escapeHTML(x.typed||'(미입력)')}<br>정답: <strong>${escapeHTML(x.item.en)}</strong></div>`).join(''):'<h3>모든 문제를 맞혔어요!</h3>'):'';
@@ -115,13 +117,13 @@ function renderMockQuestion(){
  const q=mockItems[mockIndex];mockAnswered=false;
  $('mockCount').textContent=`${mockIndex+1} / ${mockItems.length}`;$('mockBar').style.width=(mockIndex/mockItems.length*100)+'%';
  $('mockSentence').innerHTML=q.sentence;$('mockTranslation').textContent=q.translation;
- $('mockAnswer').value='';$('mockAnswer').readOnly=false;$('mockAnswer').disabled=false;$('mockCheck').disabled=false;$('mockFeedback').textContent='';$('mockFeedback').className='feedback';$('mockNext').disabled=true;$('mockNext').textContent=mockIndex===mockItems.length-1?'결과 보기':'다음 문제 →';$('mockScoreLive').textContent=`정답 ${mockScore}개`;
- $('mockAnswer').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();if(mockAnswered)nextMockQuestion();else checkMockAnswer()}};setTimeout(()=>$('mockAnswer')?.focus(),50);
+ $('mockAnswer').value='';$('mockAnswer').readOnly=false;$('mockAnswer').disabled=false;$('mockAnswer').removeAttribute('readonly');$('mockAnswer').removeAttribute('disabled');$('mockCheck').disabled=false;$('mockFeedback').textContent='';$('mockFeedback').className='feedback';$('mockNext').disabled=true;$('mockNext').textContent=mockIndex===mockItems.length-1?'결과 보기':'다음 문제 →';$('mockScoreLive').textContent=`정답 ${mockScore}개`;
+ $('mockAnswer').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();if(mockAnswered)nextMockQuestion();else checkMockAnswer()}};setTimeout(()=>{const current=$('mockAnswer');if(current&&!current.disabled&&!current.readOnly)current.focus({preventScroll:true})},50);
 }
 function checkMockAnswer(){
  if(mockAnswered)return;const input=$('mockAnswer');const typed=input.value.trim();if(!typed){$('mockFeedback').textContent='영어 단어를 입력해 주세요.';return}
  mockAnswered=true;const q=mockItems[mockIndex];const correct=typed.toLowerCase()===q.answer.toLowerCase();if(correct){mockScore++;$('mockFeedback').textContent='정답입니다!';$('mockFeedback').classList.add('ok')}else{$('mockFeedback').textContent=`아쉬워요. 정답은 ${q.answer}입니다. (${q.word})`;$('mockFeedback').classList.add('no')}
- mockReview.push({q,typed,correct});input.readOnly=true;$('mockCheck').disabled=true;$('mockNext').disabled=false;$('mockScoreLive').textContent=`정답 ${mockScore}개`;
+ mockReview.push({q,typed,correct});input.readOnly=true;input.setAttribute('readonly','');$('mockCheck').disabled=true;$('mockNext').disabled=false;$('mockScoreLive').textContent=`정답 ${mockScore}개`;
 }
 function nextMockQuestion(){if(!mockAnswered)return;if(++mockIndex<mockItems.length)renderMockQuestion();else finishMockTest()}
 function finishMockTest(){
