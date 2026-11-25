@@ -115,7 +115,7 @@ function renderMockQuestion(){
  const q=mockItems[mockIndex];mockAnswered=false;
  $('mockCount').textContent=`${mockIndex+1} / ${mockItems.length}`;$('mockBar').style.width=(mockIndex/mockItems.length*100)+'%';
  $('mockSentence').innerHTML=q.sentence;$('mockTranslation').textContent=q.translation;
- $('mockAnswer').value='';$('mockAnswer').disabled=false;$('mockCheck').disabled=false;$('mockFeedback').textContent='';$('mockFeedback').className='feedback';$('mockNext').disabled=true;$('mockNext').textContent=mockIndex===mockItems.length-1?'결과 보기':'다음 문제 →';$('mockScoreLive').textContent=`정답 ${mockScore}개`;
+ $('mockAnswer').value='';$('mockAnswer').readOnly=false;$('mockAnswer').disabled=false;$('mockCheck').disabled=false;$('mockFeedback').textContent='';$('mockFeedback').className='feedback';$('mockNext').disabled=true;$('mockNext').textContent=mockIndex===mockItems.length-1?'결과 보기':'다음 문제 →';$('mockScoreLive').textContent=`정답 ${mockScore}개`;
  $('mockAnswer').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();if(mockAnswered)nextMockQuestion();else checkMockAnswer()}};setTimeout(()=>$('mockAnswer')?.focus(),50);
 }
 function checkMockAnswer(){
